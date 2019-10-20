@@ -1,0 +1,36 @@
+#include<stdio.h>
+#include<string.h>
+#include<unistd.h>
+#include<stdlib.h>
+#include<sys/socket.h>
+#include<netinet/in.h>
+#include<arpa/inet.h>
+#include<netdb.h>
+
+int port=6789;
+
+int main(){
+
+    int socket_id;
+    int i=0;
+    char buf[100];
+    struct sockaddr_in address;
+    
+    bzero(&address,sizeof(address));
+    address.sin_family=AF_INET;
+    address.sin_addr.s_addr=inet_addr("127.0.0.1");
+    address.sin_port=htons(port);
+    
+    socket_id=socket(AF_INET,SOCK_DGRAM,0);
+    for(i=0;i<=20;i++){
+        sprintf(buf,"data packet with ID:%d",i);        
+        sendto(socket_id,buf,sizeof(buf),0,(struct sockaddr *)&address,sizeof(address));
+	printf("data sent \n");
+    }    
+    sprintf(buf,"stop\n");
+    sendto(socket_id,buf,sizeof(buf),0,(struct sockaddr*)&address,sizeof(address));
+    close(socket_id);
+    printf("Message sent ....Terminating\n");
+    return 0;
+}
+

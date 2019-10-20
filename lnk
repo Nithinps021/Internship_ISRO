@@ -1,0 +1,2 @@
+gcc serialport2.c nmea.c -lpthread -oserial
+

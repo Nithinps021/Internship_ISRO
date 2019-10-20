@@ -1,0 +1,159 @@
+#include "nmea.h"
+#include<stdio.h>
+#include<math.h>
+#include<string.h>
+#include<stdlib.h>
+#include<pthread.h>
+
+int checksum(const char *s){
+
+    int i=1;
+    unsigned char sum = 0;
+    char * p;
+        if(s[0]!='$')
+        return -1;
+    while(s[i]!='*'){
+          sum=sum ^ s[i];
+          i++;
+    }
+    p=strtok(s,"*");
+    p=strtok(NULL,"*");
+    if((strtol(p,NULL,16))==sum)
+        return 0;
+    else
+        return -1;
+}
+
+gga_t PraseGGA( char *st){
+
+    char *p;
+    gga_t result;
+    char temp[200];
+    strcpy(temp,st);
+    char *delim={","};
+
+    p=strtok(st,delim);
+    strcpy(result.name,p);
+
+    p=strtok(NULL,delim);
+    result.utc_time = atof(p);
+
+    p=strtok(NULL,delim);
+    result.lattitude = atof(p);
+
+    p=strtok(NULL,delim);
+    result.N_S = *p;
+
+    p=strtok(NULL,delim);
+    result.longitude =atof(p);
+
+    p=strtok(NULL,delim);
+    result.E_W = *p;
+
+    p=strtok(NULL,delim);
+    result.quality_indicator = *p;
+
+    p=strtok(NULL,delim);
+    result.satellite_used = atoi(p);
+
+    p=strtok(NULL,delim);
+    result.HDOP = atof(p);
+
+    p=strtok(NULL,delim);
+    result.altitude = atof(p);
+
+    p=strtok(NULL,delim);
+    result.geodial_separation = atof(p);
+
+    p=strtok(NULL,delim);
+    result.age = atoi(p);
+
+    p=strtok(NULL,delim);
+    result.DGPS_ID = atoi(p) ;
+
+    return result;
+}
+
+rmc_t PraseRMC( char *st){
+
+    char *p;
+    rmc_t result;
+    char temp[200];
+    strcpy(temp,st);
+    char *delim={","};
+
+    p=strtok(st,delim);
+    strcpy(result.name,p);
+
+    p=strtok(NULL,delim);
+    result.utc_time = atof(p);
+
+    p=strtok(NULL,delim);
+    result.status = *p;
+
+    p=strtok(NULL,delim);
+    result.latitude = atof(p);
+
+    p=strtok(NULL,delim);
+    result.N_S = *p;
+
+    p=strtok(NULL,delim);
+    result.longitude = atof(p);
+
+    p=strtok(NULL,delim);
+    result.E_W = *p;
+
+    p=strtok(NULL,delim);
+    result.speed_over_ground = atof(p);
+
+    p=strtok(NULL,delim);
+    result.course_over_ground = atof(p);
+
+    p=strtok(NULL,delim);
+    result.utc_date = atoi(p);
+
+    p=strtok(NULL,delim);
+    result.mode_indicator = *p;
+
+    return result;
+}
+
+void* store_input(char* buff_read){
+
+   int i=0,j=0;
+   char cpy[100];
+   FILE*fp_store;
+
+   pthread_mutex_lock(&mutex);
+   char*p=strtok(buff_read,"\n");
+    fp_store=fopen("cdata.txt","wa");
+    fputs(buff_read,fp_store);
+    fflush(fp_store);
+    while(p!=NULL){
+        strcpy(cpy,p);
+        if(strstr(p,"$GNGGA")!=NULL){
+                if(checksum(p)==0){
+                  gga[i]jr4j = PraseGGA(cpy);
+                  i++;
+                }
+        }
+        else if(strstr(p,"$GNRMC")!=NULL){
+            if(checksum(p)==0){
+              rmc[j] = PraseRMC(cpy);
+              j++;
+            }
+        }
+        p=strtok(NULL,"\n");
+    }
+    pthread_mutex_unlock(&mutex);
+    return 0;
+}
+
+
+
+
+
+
+
+
+

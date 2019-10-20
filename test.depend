@@ -1,0 +1,19 @@
+# depslib dependency file v1.0
+1562780511 source:f:\internship cet july2019\test\main.c
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	"nmea.h"
+
+1562780655 f:\internship cet july2019\test\nmea.h
+
+1562709656 source:f:\internship cet july2019\test\nmea.cpp
+	"nmea.h"
+
+1562780723 source:f:\internship cet july2019\test\nmea.c
+	"nmea.h"
+	<stdio.h>
+	<math.h>
+	<string.h>
+	<stdlib.h>
+

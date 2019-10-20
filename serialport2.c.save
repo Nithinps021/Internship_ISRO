@@ -1,0 +1,72 @@
+#include<stdio.h>
+#include<termios.h>
+#include<fcntl.h>
+#include<unistd.h>
+#include<stdlib.h>
+#include <string.h>
+#include "nmea.h"
+#include<pthread.h>
+#include<errno.h>
+gga_t gga[1000];
+rmc_t rmc[1000];
+char buff_read[100000];
+pthread_mutex_t mutex;
+pthread_mutex_init(&mutex,NULL);
+
+
+void main(){
+
+	pthread_t thread_store_input;
+	struct termios opt_attr;
+	unsigned char rx_buffer[250];
+	int rx_length=-1;
+	int fp_stream = -1;
+	FILE *fp;
+	fp=fopen("cdata.txt","a");
+
+	fp_stream=open("/dev/ttyUSB0",O_RDONLY|O_NOCTTY);
+	if(fp_stream==-1)
+	 printf("\nError : unable open UART");
+
+	tcgetattr(fp_stream,&opt_attr);
+	opt_attr.c_cflag=B115200|CS8|CREAD|CLOCAL;
+	opt_attr.c_iflag=IGNPAR;
+	opt_attr.c_oflag=0;
+	opt_attr.c_lflag=0;
+
+	tcflush(fp_stream,TCIFLUSH);
+	tcsetattr(fp_stream,TCSANOW,&opt_attr);
+
+
+	while(1){
+	  if(fp_stream!=-1){
+        if(pthread_mutex_trylock(&mutex)!=EBUSY){
+            while(strlen(buff_read)!=99998){
+
+                 rx_length=read(fp_stream,(void*)rx_buffer,249);
+                 if(rx_length<0){
+                printf("Error");
+                    break;
+                }
+                 else if(rx_length==0){
+                printf("No data waiting");
+                    break;
+                }
+                else{
+                    strcat(buff_read,rx_buffer);
+                }
+
+         }
+         buff_read[99999]='\0';
+         pthread_mutex_unlock(&mutex);
+         if(pthread_create(&thread_store_input,NULL,(void*)store_input,(void*)buff_read);
+                        printf("ERROR ",strerror(errno));
+         pthread_join(store_input,NULL);
+        }
+      }
+	close(fp_stream);
+    }
+}
+
+
+

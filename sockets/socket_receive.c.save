@@ -1,0 +1,40 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<unistd.h>
+#include<sys/socket.h>
+#include<netinet/in.h>
+#include<arpa/inet.h>
+#include<netdb.h>
+#include<string.h>
+
+
+int port=6789;
+
+int main(){
+
+    int socket_id;
+    struct sockaddr_in sin;
+    char message[100];
+        printf("Waiting for data from sender\n");
+    
+    bzero(&sin,sizeof(sin));
+    sin.sin_family=AF_INET;
+    sin.sin_addr.s_addr=htonl(INADDR_ANY);
+    sin.sin_port=htons(port);
+    
+
+    socket_id=socket(AF_INET,SOCK_DGRAM,0);
+    bind(socket_id,(struct sockaddr *)&sin,sizeof(sin));
+
+    while(1){
+    
+        recvfrom(socket_id,message,sizeof(message),MSG_DONTWAIT,(struct sockaddr *)&sin,(socklen_t *)sizeof(sin));
+        printf("Responce from server :%s\n",message);
+        if(strncmp(message,"stop",4)==0){
+            printf("sender message : stop...TEREMINATING....\n");
+           break;
+        }
+    }
+    close(socket_id);
+    return 0;
+}
